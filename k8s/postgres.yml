@@ -32,11 +32,20 @@ spec:
             - containerPort: 5432
           env:
             - name: POSTGRES_DB
-              value: tg_assistant
+              valueFrom:
+                secretKeyRef:
+                  name: tg-assistant-secret
+                  key: POSTGRES_DB
             - name: POSTGRES_USER
-              value: postgres
+              valueFrom:
+                secretKeyRef:
+                  name: tg-assistant-secret
+                  key: POSTGRES_USER
             - name: POSTGRES_PASSWORD
-              value: password
+              valueFrom:
+                secretKeyRef:
+                  name: tg-assistant-secret
+                  key: POSTGRES_PASSWORD
           volumeMounts:
             - name: postgres-data
               mountPath: /var/lib/postgresql/data
