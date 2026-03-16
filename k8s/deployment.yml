@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tg-assistant
+  namespace: tg-assistant
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tg-assistant
+  template:
+    metadata:
+      labels:
+        app: tg-assistant
+    spec:
+      imagePullSecrets:
+        - name: ghcr-secret
+      containers:
+        - name: tg-assistant
+          image: ghcr.io/cyborg728/claude-personal-helper:latest
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - secretRef:
+                name: tg-assistant-secret
+          env:
+            - name: BOT_WEBHOOK_DOMAIN
+              value: "tg-assistant.f-f.dev"
+            - name: BOT_WEBHOOK_PATH
+              value: "/webhook"
+            - name: BOT_HOST
+              value: "0.0.0.0"
+            - name: BOT_PORT
+              value: "8080"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tg-assistant
+  namespace: tg-assistant
+spec:
+  selector:
+    app: tg-assistant
+  ports:
+    - port: 80
+      targetPort: 8080
